@@ -1,4 +1,5 @@
 from .views import get_cart
+from products.models import Category
 
 
 def cart_count(request):
@@ -10,4 +11,14 @@ def cart_count(request):
         cart_count = 0
     
     return {'cart_count': cart_count}
+
+
+def categories(request):
+    """Context processor to add categories to all templates"""
+    try:
+        categories = Category.objects.all()[:10]
+    except:
+        categories = []
+    
+    return {'categories': categories}
 

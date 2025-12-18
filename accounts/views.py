@@ -75,3 +75,41 @@ def activate_email(request, email_token):
     except Exception as e:
         messages.error(request, "Invalid Email Token")
         return redirect("/")
+
+
+def account_page(request):
+    """Account/Profile page"""
+    if not request.user.is_authenticated:
+        messages.warning(request, "Please login to access your account")
+        return redirect('login')
+    
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        # Update user info
+        user = request.user
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.email = request.POST.get('email', user.email)
+        user.save()
+        
+        # Update profile
+        profile.phone_number = request.POST.get('phone_number', '')
+        profile.date_of_birth = request.POST.get('date_of_birth') or None
+        profile.gender = request.POST.get('gender', '')
+        profile.alternate_phone = request.POST.get('alternate_phone', '')
+        profile.address_line_1 = request.POST.get('address_line_1', '')
+        profile.address_line_2 = request.POST.get('address_line_2', '')
+        profile.city = request.POST.get('city', '')
+        profile.state = request.POST.get('state', '')
+        profile.postal_code = request.POST.get('postal_code', '')
+        profile.country = request.POST.get('country', 'India')
+        profile.save()
+        
+        messages.success(request, "Profile updated successfully")
+        return redirect('account')
+    
+    context = {
+        'profile': profile
+    }
+    return render(request, 'accounts/account.html', context)

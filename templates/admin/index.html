@@ -1,0 +1,14 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+  {% if request.user.is_superuser %}
+  <div class="module">
+    <h2>Danger Zone</h2>
+    <p>
+      <a class="deletelink" href="{% url 'admin:delete_all' %}">Delete all data (flush database)</a>
+      <br><small>This action is restricted to superusers and will remove all data from the database.</small>
+    </p>
+  </div>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

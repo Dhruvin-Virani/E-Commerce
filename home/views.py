@@ -4,7 +4,7 @@ from products.models import Product, Category
 
 # Create your views here.
 def index(request):
-    products = Product.objects.all()
+    products = Product.objects.all()[:12]  # Show 12 products on homepage
     categories = Category.objects.all()
     context = {
         'products': products,
