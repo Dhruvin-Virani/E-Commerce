@@ -96,34 +96,101 @@
 	
 		</main> <!-- col.// -->
 		<aside class="col-md-3">
+			<!-- Coupon Section -->
 			<div class="card mb-3">
 				<div class="card-body">
-				<form>
-					<div class="form-group">
-						<label>Have coupon?</label>
-						<div class="input-group">
-							<input type="text" class="form-control" name="" placeholder="Coupon code">
-							<span class="input-group-append"> 
-								<button class="btn btn-primary">Apply</button>
-							</span>
+					{% if cart.coupon %}
+						<div class="alert alert-success">
+							<strong>Coupon Applied:</strong> {{ cart.coupon.coupon_code }}<br>
+							<small>You saved ₹{{ cart.get_discount_amount }}.00</small>
+							<button type="button" class="btn btn-sm btn-link p-0 mt-1" onclick="removeCoupon()">Remove</button>
 						</div>
-					</div>
-				</form>
+					{% else %}
+						<form id="coupon-form" onsubmit="applyCoupon(event)">
+							<div class="form-group">
+								<label>Have coupon?</label>
+								<div class="input-group">
+									<input type="text" class="form-control" id="coupon-code-input" name="coupon_code" placeholder="Enter coupon code" required>
+									<span class="input-group-append"> 
+										<button type="submit" class="btn btn-primary">Apply</button>
+									</span>
+								</div>
+							</div>
+						</form>
+					{% endif %}
 				</div> <!-- card-body.// -->
 			</div> <!-- card .// -->
+			
+			<!-- Available Coupons -->
+			{% if applicable_coupons %}
+			<div class="card mb-3">
+				<div class="card-body">
+					<h6 class="card-title">Available Coupons</h6>
+					<div class="list-group list-group-flush">
+						{% for coupon in applicable_coupons %}
+						<div class="list-group-item px-0 py-2">
+							<div class="d-flex justify-content-between align-items-center">
+								<div>
+									<strong>{{ coupon.coupon_code }}</strong>
+									<small class="d-block text-muted">Get ₹{{ coupon.discount_price }} off</small>
+									<small class="d-block text-muted">Min. order: ₹{{ coupon.minimum_amount }}</small>
+								</div>
+								{% if not cart.coupon %}
+								<button type="button" class="btn btn-sm btn-outline-primary" onclick="applyCouponCode('{{ coupon.coupon_code }}')">Apply</button>
+								{% endif %}
+							</div>
+						</div>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+			{% endif %}
+			
+			<!-- All Coupons (if different from applicable) -->
+			{% if all_coupons and all_coupons|length > applicable_coupons|length %}
+			<div class="card mb-3">
+				<div class="card-body">
+					<h6 class="card-title">All Coupons</h6>
+					<div class="list-group list-group-flush" style="max-height: 200px; overflow-y: auto;">
+						{% for coupon in all_coupons %}
+						<div class="list-group-item px-0 py-2">
+							<div class="d-flex justify-content-between align-items-center">
+								<div>
+									<strong>{{ coupon.coupon_code }}</strong>
+									<small class="d-block text-muted">Get ₹{{ coupon.discount_price }} off</small>
+									<small class="d-block text-muted">Min. order: ₹{{ coupon.minimum_amount }}</small>
+									{% if coupon not in applicable_coupons %}
+									<small class="d-block text-danger">Min. ₹{{ coupon.minimum_amount }} required</small>
+									{% endif %}
+								</div>
+							</div>
+						</div>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+			{% endif %}
+			
+			<!-- Order Summary -->
 			<div class="card">
 				<div class="card-body">
 						<dl class="dlist-align">
 						  <dt>Total price:</dt>
 						  <dd class="text-right" id="cart-total">₹{{ cart.get_cart_total }}.00</dd>
 						</dl>
+						{% if cart.coupon %}
+						<dl class="dlist-align">
+						  <dt>Discount ({{ cart.coupon.coupon_code }}):</dt>
+						  <dd class="text-right text-success" id="discount-amount">-₹{{ cart.get_discount_amount }}.00</dd>
+						</dl>
+						{% endif %}
 						<dl class="dlist-align">
 						  <dt>Shipping:</dt>
 						  <dd class="text-right">Free</dd>
 						</dl>
 						<dl class="dlist-align">
 						  <dt>Total:</dt>
-						  <dd class="text-right h5"><strong id="cart-total-final">₹{{ cart.get_cart_total }}.00</strong></dd>
+						  <dd class="text-right h5"><strong id="cart-total-final">₹{{ cart.get_cart_total_after_discount }}.00</strong></dd>
 						</dl>
 						<hr>
 						<a href="#" class="btn btn-primary btn-block"> Make Purchase </a>
@@ -196,7 +263,27 @@
 					}
 					// Update cart total
 					document.getElementById('cart-total').textContent = '₹' + data.cart_total + '.00';
-					document.getElementById('cart-total-final').textContent = '₹' + data.cart_total + '.00';
+					
+					// Update discount if exists
+					if (data.discount_amount !== undefined && data.discount_amount > 0) {
+						const discountElement = document.getElementById('discount-amount');
+						if (discountElement) {
+							discountElement.textContent = '-₹' + data.discount_amount + '.00';
+						} else {
+							// Add discount row if it doesn't exist
+							const totalRow = document.querySelector('dl.dlist-align:last-of-type');
+							if (totalRow && !document.getElementById('discount-amount')) {
+								const discountRow = document.createElement('dl');
+								discountRow.className = 'dlist-align';
+								discountRow.innerHTML = '<dt>Discount:</dt><dd class="text-right text-success" id="discount-amount">-₹' + data.discount_amount + '.00</dd>';
+								totalRow.parentNode.insertBefore(discountRow, totalRow);
+							}
+						}
+					}
+					
+					// Update final total
+					const finalTotal = data.cart_total_after_discount !== undefined ? data.cart_total_after_discount : data.cart_total;
+					document.getElementById('cart-total-final').textContent = '₹' + finalTotal + '.00';
 					// Update cart count in navbar
 					fetch('/cart/count/')
 						.then(response => response.json())
@@ -255,7 +342,24 @@
 				// Update cart total
 				if (data.cart_total !== undefined) {
 					document.getElementById('cart-total').textContent = '₹' + data.cart_total + '.00';
-					document.getElementById('cart-total-final').textContent = '₹' + data.cart_total + '.00';
+					
+					// Update discount if exists
+					if (data.discount_amount !== undefined && data.discount_amount > 0) {
+						const discountElement = document.getElementById('discount-amount');
+						if (discountElement) {
+							discountElement.textContent = '-₹' + data.discount_amount + '.00';
+						}
+					} else {
+						// Remove discount row if no discount
+						const discountElement = document.getElementById('discount-amount');
+						if (discountElement) {
+							discountElement.closest('dl').remove();
+						}
+					}
+					
+					// Update final total
+					const finalTotal = data.cart_total_after_discount !== undefined ? data.cart_total_after_discount : data.cart_total;
+					document.getElementById('cart-total-final').textContent = '₹' + finalTotal + '.00';
 				}
 				
 				// Update cart count in navbar
@@ -288,6 +392,103 @@
 				buttonElement.disabled = false;
 				buttonElement.textContent = 'Remove';
 			}
+		});
+	}
+
+	function applyCoupon(event) {
+		if (event) {
+			event.preventDefault();
+		}
+		
+		const couponCode = document.getElementById('coupon-code-input').value.trim().toUpperCase();
+		
+		if (!couponCode) {
+			alert('Please enter a coupon code');
+			return;
+		}
+		
+		const formData = new FormData();
+		formData.append('coupon_code', couponCode);
+		formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+		
+		const applyBtn = event ? event.target.querySelector('button[type="submit"]') : document.querySelector('#coupon-form button[type="submit"]');
+		if (applyBtn) {
+			applyBtn.disabled = true;
+			applyBtn.textContent = 'Applying...';
+		}
+		
+		fetch('{% url "apply_coupon" %}', {
+			method: 'POST',
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+			},
+			body: formData
+		})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			if (data.success) {
+				alert(data.message);
+				window.location.reload();
+			} else {
+				alert('Error: ' + (data.message || 'Failed to apply coupon'));
+				if (applyBtn) {
+					applyBtn.disabled = false;
+					applyBtn.textContent = 'Apply';
+				}
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			alert('An error occurred. Please try again.');
+			if (applyBtn) {
+				applyBtn.disabled = false;
+				applyBtn.textContent = 'Apply';
+			}
+		});
+	}
+
+	function applyCouponCode(couponCode) {
+		document.getElementById('coupon-code-input').value = couponCode;
+		applyCoupon(null);
+	}
+
+	function removeCoupon() {
+		if (!confirm('Are you sure you want to remove the applied coupon?')) {
+			return;
+		}
+		
+		const formData = new FormData();
+		formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+		
+		fetch('{% url "remove_coupon" %}', {
+			method: 'POST',
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+			},
+			body: formData
+		})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			if (data.success) {
+				alert(data.message);
+				window.location.reload();
+			} else {
+				alert('Error: ' + (data.message || 'Failed to remove coupon'));
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			alert('An error occurred. Please try again.');
 		});
 	}
 </script>

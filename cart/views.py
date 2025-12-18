@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from .models import Cart, CartItems
+from .models import Cart, CartItems, Coupon
 from products.models import Product, SizeVariant, ColorVariant
 
 
@@ -95,9 +95,19 @@ def add_to_cart(request):
 def cart_view(request):
     cart = get_cart(request)
     cart_items = cart.cart_items.all()
+    cart_total = cart.get_cart_total()
+    
+    # Get all active coupons
+    all_coupons = Coupon.objects.filter(is_expired=False).order_by('-discount_price')
+    
+    # Get applicable coupons (where cart total >= minimum_amount)
+    applicable_coupons = [coupon for coupon in all_coupons if coupon.is_valid(cart_total)]
+    
     context = {
         'cart': cart,
         'cart_items': cart_items,
+        'all_coupons': all_coupons,
+        'applicable_coupons': applicable_coupons,
     }
     return render(request, 'cart/cart.html', context)
 
@@ -133,7 +143,9 @@ def remove_from_cart(request, cart_item_uid):
             return JsonResponse({
                 'success': True,
                 'message': 'Item removed from cart',
-                'cart_total': cart.get_cart_total()
+                'cart_total': cart.get_cart_total(),
+                'cart_total_after_discount': cart.get_cart_total_after_discount(),
+                'discount_amount': cart.get_discount_amount()
             })
         
         messages.success(request, 'Item removed from cart')
@@ -175,6 +187,8 @@ def update_cart_item(request, cart_item_uid):
                 'success': True,
                 'message': 'Cart updated successfully',
                 'cart_total': cart.get_cart_total(),
+                'cart_total_after_discount': cart.get_cart_total_after_discount(),
+                'discount_amount': cart.get_discount_amount(),
             }
             if quantity > 0:
                 response_data['item_total'] = item_total
@@ -183,6 +197,108 @@ def update_cart_item(request, cart_item_uid):
             return JsonResponse(response_data)
         
         messages.success(request, 'Cart updated successfully')
+        return redirect('cart')
+        
+    except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+        messages.error(request, f'Error: {str(e)}')
+        return redirect('cart')
+
+
+@require_POST
+def apply_coupon(request):
+    try:
+        coupon_code = request.POST.get('coupon_code', '').strip().upper()
+        
+        if not coupon_code:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': 'Please enter a coupon code'}, status=400)
+            messages.error(request, 'Please enter a coupon code')
+            return redirect('cart')
+        
+        cart = get_cart(request)
+        cart_total = cart.get_cart_total()
+        
+        try:
+            coupon = Coupon.objects.get(coupon_code__iexact=coupon_code)
+        except Coupon.DoesNotExist:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': 'Invalid coupon code'}, status=400)
+            messages.error(request, 'Invalid coupon code')
+            return redirect('cart')
+        
+        # Check if coupon is valid
+        if not coupon.is_valid(cart_total):
+            if coupon.is_expired:
+                message = 'This coupon has expired'
+            elif cart_total < coupon.minimum_amount:
+                message = f'Minimum order amount of ₹{coupon.minimum_amount} required for this coupon'
+            else:
+                message = 'This coupon is not valid'
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': message}, status=400)
+            messages.error(request, message)
+            return redirect('cart')
+        
+        # Apply coupon
+        cart.coupon = coupon
+        cart.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f'Coupon "{coupon.coupon_code}" applied successfully!',
+                'discount': coupon.discount_price,
+                'cart_total': cart.get_cart_total(),
+                'cart_total_after_discount': cart.get_cart_total_after_discount(),
+                'coupon_code': coupon.coupon_code
+            })
+        
+        messages.success(request, f'Coupon "{coupon.coupon_code}" applied successfully!')
+        return redirect('cart')
+        
+    except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+        messages.error(request, f'Error: {str(e)}')
+        return redirect('cart')
+
+
+@require_POST
+def remove_coupon(request):
+    try:
+        cart = get_cart(request)
+        
+        # Check if user owns this cart
+        if request.user.is_authenticated:
+            if cart.user != request.user:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'message': 'Permission denied'}, status=403)
+                messages.error(request, 'You do not have permission')
+                return redirect('cart')
+        else:
+            session_cart_id = request.session.get('cart_id')
+            if str(cart.uid) != session_cart_id:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'message': 'Permission denied'}, status=403)
+                messages.error(request, 'You do not have permission')
+                return redirect('cart')
+        
+        removed_coupon = cart.coupon
+        cart.coupon = None
+        cart.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': 'Coupon removed successfully',
+                'cart_total': cart.get_cart_total(),
+                'cart_total_after_discount': cart.get_cart_total_after_discount()
+            })
+        
+        messages.success(request, 'Coupon removed successfully')
         return redirect('cart')
         
     except Exception as e:
