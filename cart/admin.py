@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cart, CartItems, Coupon
+from .models import Cart, CartItems, Coupon, Payment
 
 
 @admin.register(Coupon)
@@ -20,3 +20,11 @@ class CartAdmin(admin.ModelAdmin):
 class CartItemsAdmin(admin.ModelAdmin):
     list_display = ['cart', 'product', 'size_variant', 'color_variant', 'quantity']
     list_filter = ['create_at']
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ['cart', 'razorpay_order_id', 'razorpay_payment_id', 'amount', 'status', 'create_at']
+    list_filter = ['status', 'create_at']
+    search_fields = ['razorpay_order_id', 'razorpay_payment_id']
+    readonly_fields = ['uid', 'create_at', 'updated_at']

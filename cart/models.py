@@ -76,3 +76,16 @@ class CartItems(BaseModel):
             price += self.color_variant.price
         
         return price * self.quantity
+
+
+class Payment(BaseModel):
+    cart = models.OneToOneField(Cart, on_delete=models.CASCADE, related_name="payment")
+    razorpay_order_id = models.CharField(max_length=100, unique=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+    razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
+    amount = models.IntegerField()  # Amount in paise
+    status = models.CharField(max_length=50, default='Created')  # Created, Success, Failed
+    invoice_pdf = models.FileField(upload_to="invoices", null=True, blank=True)
+    
+    def __str__(self) -> str:
+        return f"{self.cart} - {self.status} - ₹{self.amount/100}"

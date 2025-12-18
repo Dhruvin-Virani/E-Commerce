@@ -147,3 +147,7 @@ EMAIL_USE_TLS = True
 # Your email address and app-specific password
 EMAIL_HOST_USER = 'tedbot.com@gmail.com'
 EMAIL_HOST_PASSWORD = 'hqrj ubvi wceg akpo' # Use an app password for services like Gmail
+
+# Razorpay Settings
+RAZORPAY_KEY_ID = 'rzp_test_1DP5mmOlF5G5ag'  # Replace with your actual key
+RAZORPAY_KEY_SECRET = 'your_razorpay_secret_key'  # Replace with your actual secret

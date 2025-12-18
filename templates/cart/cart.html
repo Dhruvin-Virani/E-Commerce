@@ -193,7 +193,7 @@
 						  <dd class="text-right h5"><strong id="cart-total-final">₹{{ cart.get_cart_total_after_discount }}.00</strong></dd>
 						</dl>
 						<hr>
-						<a href="#" class="btn btn-primary btn-block"> Make Purchase </a>
+						<a href="{% url 'initiate_payment' %}" class="btn btn-primary btn-block"> Make Purchase </a>
 						<a href="/" class="btn btn-light btn-block">Continue Shopping</a>
 				</div> <!-- card-body.// -->
 			</div> <!-- card .// -->

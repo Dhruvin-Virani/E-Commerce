@@ -59,11 +59,19 @@ def register_page(request):
     return render(request, "accounts/register.html")
 
 
+def logout_page(request):
+    logout(request)
+    messages.success(request, "Logged out successfully")
+    return redirect("/")
+
+
 def activate_email(request, email_token):
     try:
         user = Profile.objects.get(email_token = email_token)
         user.is_email_verified = True
         user.save()
+        messages.success(request, "Email verified successfully")
         return redirect("/")
     except Exception as e:
-        return HttpResponse("Invalid Email Token, Account is not verified")
+        messages.error(request, "Invalid Email Token")
+        return redirect("/")
