@@ -11,15 +11,19 @@
 					<aside class="col-md-6">
 			<article class="gallery-wrap"> 
 			<div class="img-big-wrap">
-			  <div> <a href="#"><img src="/media/{{product.product_images.first.image}}"></a></div>
+			  <div> <a href="#"><img id="main-product-image" src="/media/{% if product_images %}{{product_images.first.image}}{% else %}{{product.product_images.first.image}}{% endif %}"></a></div>
 			</div> <!-- slider-product.// -->
 			<div class="thumbs-wrap">
 
-			{% for image in product.product_images.all %}
-
-			  <a href="#" class="item-thumb"> <img src="/media/{{image.image}}"></a>
-
-			{% endfor %}
+			{% if product_images %}
+				{% for image in product_images %}
+				  <a href="#" class="item-thumb" onclick="changeMainImage('/media/{{image.image}}'); return false;"> <img src="/media/{{image.image}}"></a>
+				{% endfor %}
+			{% else %}
+				{% for image in product.product_images.all %}
+				  <a href="#" class="item-thumb" onclick="changeMainImage('/media/{{image.image}}'); return false;"> <img src="/media/{{image.image}}"></a>
+				{% endfor %}
+			{% endif %}
 
 			</div> <!-- slider-nav.// -->
 			</article> <!-- gallery-wrap .end// -->
@@ -92,8 +96,24 @@
 							<div class="mt-1">
 							{% for size in product.size_variant.all %}
 								<label class="custom-control custom-radio custom-control-inline">
-								  <input type="radio" onchange="get_correct_price('{{size.size}}')" name="selected_size" {% if selected_size == size.size %} checked {% endif %} class="custom-control-input">
+								  <input type="radio" onchange="updateProductVariant('size', '{{size.size}}')" name="selected_size" value="{{size.size}}" {% if selected_size == size.size %} checked {% endif %} class="custom-control-input">
 								  <div class="custom-control-label">{{size.size}}</div>
+								</label>
+							
+								{% endfor %}
+			
+							</div>
+							{% endif %}
+						</div> <!-- col.// -->
+					<div class="form-group col-md">
+						{% if product.color_variant.count %}
+							<label>Select color</label>
+		
+							<div class="mt-1">
+							{% for color in product.color_variant.all %}
+								<label class="custom-control custom-radio custom-control-inline">
+								  <input type="radio" onchange="updateProductVariant('color', '{{color.color_name}}')" name="selected_color" value="{{color.color_name}}" {% if selected_color == color.color_name %} checked {% endif %} class="custom-control-input">
+								  <div class="custom-control-label">{{color.color_name}}</div>
 								</label>
 							
 								{% endfor %}
@@ -117,8 +137,31 @@
 
 			<script>
 
-				function get_correct_price(size){
-					window.location.href = window.location.pathname + `?size=${size}`
+				function changeMainImage(imageSrc) {
+					document.getElementById('main-product-image').src = imageSrc;
+				}
+
+				function updateProductVariant(type, value) {
+					const urlParams = new URLSearchParams(window.location.search);
+					
+					if (type === 'size') {
+						urlParams.set('size', value);
+					} else if (type === 'color') {
+						urlParams.set('color', value);
+					}
+					
+					// Preserve the other parameter if it exists
+					const currentSize = document.querySelector('input[name="selected_size"]:checked');
+					const currentColor = document.querySelector('input[name="selected_color"]:checked');
+					
+					if (currentSize && type !== 'size') {
+						urlParams.set('size', currentSize.value);
+					}
+					if (currentColor && type !== 'color') {
+						urlParams.set('color', currentColor.value);
+					}
+					
+					window.location.href = window.location.pathname + '?' + urlParams.toString();
 				}
 
 			</script>

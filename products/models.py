@@ -47,6 +47,9 @@ class Product(BaseModel):
     
     def get_product_price_by_size(self, size):
         return self.price + SizeVariant.objects.get(size = size).price
+    
+    def get_product_price_by_color(self, color_name):
+        return self.price + ColorVariant.objects.get(color_name = color_name).price
 
 
 
@@ -54,4 +57,5 @@ class Product(BaseModel):
 class ProductImage(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="product_images")
     image = models.ImageField(upload_to="product")
+    color_variant = models.ForeignKey(ColorVariant, on_delete=models.SET_NULL, null=True, blank=True, related_name="product_images")
     
