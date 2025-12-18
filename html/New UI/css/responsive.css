@@ -1,0 +1,41 @@
+/* Responsive rules — place in css/responsive.css */
+@media (max-width: 1024px){
+  .container{max-width:960px}
+  .header-grid{grid-template-columns:120px 1fr 160px}
+  .nav-dropdown .mega{width:620px}
+}
+
+@media (max-width: 768px){
+  .hide-sm{display:none}
+  .show-sm{display:inline-block}
+  .header-grid{grid-template-columns:120px 1fr 80px}
+  main.main-grid{grid-template-columns:1fr;}
+  .filters{display:none}
+  .nav-dropdown .mega{position:static}
+  .nav-dropdown .mega{display:block}
+}
+
+/* CRITICAL: adjust grid to show more products per screen on small devices */
+/* Use small min widths so multiple products fit horizontally without horizontal scroll */
+@media (max-width: 480px){
+  .product-grid{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+  .product .img-wrap{height:100px}
+  .title{font-size:13px}
+}
+
+@media (min-width: 481px) and (max-width: 767px){
+  .product-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  .product .img-wrap{height:110px}
+}
+
+@media (min-width: 768px) and (max-width: 991px){
+  .product-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+}
+
+@media (min-width: 992px){
+  .product-grid{grid-template-columns:repeat(3,1fr)}
+  main.main-grid{grid-template-columns:240px 1fr}
+}
+
+/* ensure images scale nicely */
+img{max-width:100%;height:auto}

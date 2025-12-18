@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Store — Enhanced Responsive Frontend</title>
+  <link rel="stylesheet" href="css/ui.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Top utility bar -->
+<div class="top-utility">
+  <div class="container flex row between center py-1">
+    <div class="left-utility hide-sm">
+      <small>Free delivery over ₹999</small>
+      <small class="sep">|</small>
+      <small>Help & Support</small>
+      <small class="sep">|</small>
+      <small>Track order</small>
+    </div>
+    <div class="right-utility">
+      <a href="#">Call: +99812345678</a>
+      <div class="dropdown inline">
+        <button class="btn-link" id="langBtn">English <i class="fa fa-caret-down"></i></button>
+        <div class="dropdown-menu" aria-labelledby="langBtn">
+          <a class="dropdown-item" href="#">Arabic</a>
+          <a class="dropdown-item" href="#">Russian</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="container header-grid">
+    <div class="brand">
+      <a href="#"><img src="images/logo.png" alt="brand" class="logo"></a>
+    </div>
+
+    <div class="search-wrap">
+      <form class="search" role="search" aria-label="Search site">
+        <input type="search" class="search-input" placeholder="Search for products, brands and categories">
+        <button class="search-btn" aria-label="Search"><i class="fa fa-search"></i></button>
+      </form>
+    </div>
+
+    <div class="header-actions">
+      <a class="icon" href="#" aria-label="Wishlist"><i class="fa fa-heart"></i></a>
+      <a class="icon" href="#" aria-label="Cart"><i class="fa fa-shopping-cart"></i><span class="badge">3</span></a>
+      <div class="account dropdown inline">
+        <button class="btn-link" id="accBtn"><i class="fa fa-user"></i></button>
+        <div class="dropdown-menu" aria-labelledby="accBtn">
+          <a class="dropdown-item" href="#">Sign in</a>
+          <a class="dropdown-item" href="#">Register</a>
+        </div>
+      </div>
+      <button class="hamburger show-sm" id="menuToggle" aria-label="Toggle menu"><i class="fa fa-bars"></i></button>
+    </div>
+  </div>
+
+  <!-- Primary nav (desktop) -->
+  <nav class="primary-nav hide-sm">
+    <div class="container nav-grid">
+      <a href="#" class="nav-link">Home</a>
+      <div class="nav-dropdown">
+        <button class="nav-link">Categories <i class="fa fa-caret-down"></i></button>
+        <div class="mega">
+          <div class="col">
+            <h6>Top Categories</h6>
+            <ul>
+              <li><a href="#">Mobiles</a></li>
+              <li><a href="#">Laptops</a></li>
+              <li><a href="#">Clothing</a></li>
+              <li><a href="#">Shoes</a></li>
+            </ul>
+          </div>
+          <div class="col">
+            <h6>Popular Brands</h6>
+            <ul>
+              <li><a href="#">Apple</a></li>
+              <li><a href="#">Samsung</a></li>
+              <li><a href="#">Nike</a></li>
+            </ul>
+          </div>
+          <div class="col promo">
+            <img src="images/banners/1.png" alt="deals">
+            <div class="promo-text"><strong>Deals of the day</strong><p>Up to 50% off</p></div>
+          </div>
+        </div>
+      </div>
+      <a href="#" class="nav-link">Delivery</a>
+      <a href="#" class="nav-link">Payment</a>
+      <a href="#" class="nav-link">Offers</a>
+      <div class="nav-spacer"></div>
+      <a href="#" class="nav-link">Sell on Store</a>
+      <a href="#" class="nav-link">Support</a>
+    </div>
+  </nav>
+
+  <!-- Mobile nav (collapsible) -->
+  <div id="mobileNav" class="mobile-nav show-sm" aria-hidden="true">
+    <div class="mobile-inner">
+      <button class="close" id="closeMenu">Close</button>
+      <ul class="mobile-list">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Categories</a></li>
+        <li><a href="#">Deals</a></li>
+        <li><a href="#">Sell on Store</a></li>
+        <li><a href="#">Support</a></li>
+      </ul>
+    </div>
+  </div>
+</header>
+
+<!-- Main content -->
+<main class="container main-grid">
+  <aside class="filters hide-sm">
+    <div class="card">
+      <h6>Categories</h6>
+      <ul>
+        <li><a href="#">Mobiles</a></li>
+        <li><a href="#">Laptops</a></li>
+        <li><a href="#">Clothing</a></li>
+        <li><a href="#">Home</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <section class="content">
+    <div class="toolbar">
+      <div>Showing <strong>120</strong> results</div>
+      <div class="sort">Sort by: <select><option>Popular</option><option>Price: Low to High</option></select></div>
+    </div>
+
+    <!-- Product grid — uses CSS grid with auto-fit to pack more items on small screens -->
+    <div class="product-grid" role="list">
+      <!-- Repeat these cards as needed; in production render via loop -->
+      <!-- Card 1 -->
+      <article class="product" role="listitem">
+        <figure class="img-wrap"><img src="images/items/1.jpg" alt="item"></figure>
+        <h4 class="title">Bell &amp; Ross Nightlum</h4>
+        <div class="price">₹29,900</div>
+      </article>
+
+      <!-- Card 2 -->
+      <article class="product" role="listitem">
+        <figure class="img-wrap"><img src="images/items/2.jpg" alt="item"></figure>
+        <h4 class="title">Leather Sleeve - Macbook 13’’</h4>
+        <div class="price">₹3,753</div>
+      </article>
+
+      <!-- Card 3 -->
+      <article class="product" role="listitem">
+        <figure class="img-wrap"><img src="images/items/3.jpg" alt="item"></figure>
+        <h4 class="title">H&amp;M Polo Shirt Slim Fit</h4>
+        <div class="price">₹1,299</div>
+      </article>
+
+      <!-- Card 4 -->
+      <article class="product" role="listitem">
+        <figure class="img-wrap"><img src="images/items/4.jpg" alt="item"></figure>
+        <h4 class="title">Nike Running Shoes</h4>
+        <div class="price">₹5,499</div>
+      </article>
+
+      <!-- Additional cards to show grid behavior -->
+      <article class="product" role="listitem"><figure class="img-wrap"><img src="images/items/5.jpg" alt="item"></figure><h4 class="title">Product 5</h4><div class="price">₹899</div></article>
+      <article class="product" role="listitem"><figure class="img-wrap"><img src="images/items/6.jpg" alt="item"></figure><h4 class="title">Product 6</h4><div class="price">₹2,199</div></article>
+      <article class="product" role="listitem"><figure class="img-wrap"><img src="images/items/7.jpg" alt="item"></figure><h4 class="title">Product 7</h4><div class="price">₹4,299</div></article>
+      <article class="product" role="listitem"><figure class="img-wrap"><img src="images/items/8.jpg" alt="item"></figure><h4 class="title">Product 8</h4><div class="price">₹2,999</div></article>
+
+    </div>
+
+    <!-- Pagination or load more -->
+    <div class="pager">
+      <button class="btn">Load more</button>
+    </div>
+  </section>
+</main>
+
+<!-- Mobile bottom bar (quick actions) -->
+<nav class="mobile-bottom show-sm">
+  <a href="#" class="mb-item"><i class="fa fa-home"></i><span>Home</span></a>
+  <a href="#" class="mb-item"><i class="fa fa-search"></i><span>Search</span></a>
+  <a href="#" class="mb-item"><i class="fa fa-shopping-cart"></i><span>Cart</span></a>
+  <a href="#" class="mb-item"><i class="fa fa-user"></i><span>Account</span></a>
+</nav>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h6>About</h6>
+      <p class="muted">Prototype with enhanced navigation and responsive grid</p>
+    </div>
+    <div>
+      <h6>Help</h6>
+      <ul>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Returns</a></li>
+      </ul>
+    </div>
+    <div>
+      <h6>Follow</h6>
+      <div class="socials"><a href="#"><i class="fab fa-facebook"></i></a><a href="#"><i class="fab fa-instagram"></i></a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Simple mobile nav toggle
+document.addEventListener('DOMContentLoaded', function(){
+  var menuToggle = document.getElementById('menuToggle');
+  var mobileNav = document.getElementById('mobileNav');
+  var closeMenu = document.getElementById('closeMenu');
+  if(menuToggle && mobileNav){
+    menuToggle.addEventListener('click', function(){ mobileNav.style.display = 'block'; mobileNav.setAttribute('aria-hidden','false'); });
+    closeMenu.addEventListener('click', function(){ mobileNav.style.display = 'none'; mobileNav.setAttribute('aria-hidden','true'); });
+  }
+});
+</script>
+</body>
+</html>
