@@ -1,0 +1,296 @@
+{% extends "base/base.html" %}
+
+{% block start %}
+
+<section class="section-content padding-y">
+	<div class="container">
+	
+	<div class="row">
+		<main class="col-md-9">
+	<div class="card">
+	
+	<table class="table table-borderless table-shopping-cart">
+	<thead class="text-muted">
+	<tr class="small text-uppercase">
+	  <th scope="col">Product</th>
+	  <th scope="col" width="120">Quantity</th>
+	  <th scope="col" width="120">Price</th>
+	  <th scope="col" class="text-right" width="200"> </th>
+	</tr>
+	</thead>
+	<tbody>
+	{% if cart_items %}
+		{% for cart_item in cart_items %}
+		<tr>
+			<td>
+				<figure class="itemside">
+					<div class="aside">
+						{% if cart_item.product and cart_item.product.product_images.first %}
+							<img src="/media/{{ cart_item.product.product_images.first.image }}" class="img-sm">
+						{% else %}
+							<img src="/media/images/items/1.jpg" class="img-sm">
+						{% endif %}
+					</div>
+					<figcaption class="info">
+						{% if cart_item.product %}
+							<a href="{% url 'get_product' cart_item.product.slug %}" class="title text-dark">{{ cart_item.product.product_name }}</a>
+							<p class="text-muted small">
+								{% if cart_item.size_variant %}Size: {{ cart_item.size_variant.size }}{% endif %}
+								{% if cart_item.size_variant and cart_item.color_variant %}, {% endif %}
+								{% if cart_item.color_variant %}Color: {{ cart_item.color_variant.color_name }}{% endif %}
+							</p>
+						{% else %}
+							<span class="title text-dark">Product no longer available</span>
+						{% endif %}
+					</figcaption>
+				</figure>
+			</td>
+			<td> 
+				<div class="input-group input-spinner">
+					<div class="input-group-prepend">
+						<button class="btn btn-light" type="button" onclick="decreaseQuantity('{{ cart_item.uid }}')"> − </button>
+					</div>
+					<input type="text" class="form-control" id="quantity-{{ cart_item.uid }}" value="{{ cart_item.quantity }}" min="1" readonly>
+					<div class="input-group-append">
+						<button class="btn btn-light" type="button" onclick="increaseQuantity('{{ cart_item.uid }}')"> + </button>
+					</div>
+				</div>
+			</td>
+			<td> 
+				<div class="price-wrap"> 
+					<var class="price" id="item-total-{{ cart_item.uid }}">₹{{ cart_item.get_product_price }}.00</var> 
+					{% if cart_item.product %}
+						{% with base_price=cart_item.product.price %}
+						{% with size_price=cart_item.size_variant.price|default:0 %}
+						{% with color_price=cart_item.color_variant.price|default:0 %}
+						{% with unit_price=base_price|add:size_price|add:color_price %}
+						<small class="text-muted"> ₹{{ unit_price }}.00 each </small>
+						{% endwith %}
+						{% endwith %}
+						{% endwith %}
+						{% endwith %}
+					{% endif %}
+				</div> <!-- price-wrap .// -->
+			</td>
+			<td class="text-right"> 
+				<button type="button" class="btn btn-light" onclick="removeItem('{{ cart_item.uid }}', this)"> Remove</button>
+			</td>
+		</tr>
+		{% endfor %}
+	{% else %}
+		<tr>
+			<td colspan="4" class="text-center">
+				<p class="text-muted">Your cart is empty.</p>
+				<a href="/" class="btn btn-primary">Continue Shopping</a>
+			</td>
+		</tr>
+	{% endif %}
+	</tbody>
+	</table>
+	
+	<div class="card-body border-top">
+		<a href="/" class="btn btn-light"> <i class="fa fa-arrow-left"></i> Continue shopping </a>
+	</div> <!-- card-body.// -->
+	
+	</div> <!-- card.// -->
+	
+		</main> <!-- col.// -->
+		<aside class="col-md-3">
+			<div class="card mb-3">
+				<div class="card-body">
+				<form>
+					<div class="form-group">
+						<label>Have coupon?</label>
+						<div class="input-group">
+							<input type="text" class="form-control" name="" placeholder="Coupon code">
+							<span class="input-group-append"> 
+								<button class="btn btn-primary">Apply</button>
+							</span>
+						</div>
+					</div>
+				</form>
+				</div> <!-- card-body.// -->
+			</div> <!-- card .// -->
+			<div class="card">
+				<div class="card-body">
+						<dl class="dlist-align">
+						  <dt>Total price:</dt>
+						  <dd class="text-right" id="cart-total">₹{{ cart.get_cart_total }}.00</dd>
+						</dl>
+						<dl class="dlist-align">
+						  <dt>Shipping:</dt>
+						  <dd class="text-right">Free</dd>
+						</dl>
+						<dl class="dlist-align">
+						  <dt>Total:</dt>
+						  <dd class="text-right h5"><strong id="cart-total-final">₹{{ cart.get_cart_total }}.00</strong></dd>
+						</dl>
+						<hr>
+						<a href="#" class="btn btn-primary btn-block"> Make Purchase </a>
+						<a href="/" class="btn btn-light btn-block">Continue Shopping</a>
+				</div> <!-- card-body.// -->
+			</div> <!-- card .// -->
+		</aside> <!-- col.// -->
+	</div> <!-- row.// -->
+	
+	</div> <!-- container .//  -->
+</section>
+
+<script>
+	function getCurrentQuantity(cartItemUid) {
+		const input = document.getElementById('quantity-' + cartItemUid);
+		return parseInt(input.value) || 1;
+	}
+
+	function increaseQuantity(cartItemUid) {
+		const currentQuantity = getCurrentQuantity(cartItemUid);
+		const newQuantity = currentQuantity + 1;
+		updateQuantity(cartItemUid, newQuantity);
+	}
+
+	function decreaseQuantity(cartItemUid) {
+		const currentQuantity = getCurrentQuantity(cartItemUid);
+		if (currentQuantity <= 1) {
+			if (confirm('Are you sure you want to remove this item?')) {
+				removeItem(cartItemUid);
+			}
+			return;
+		}
+		const newQuantity = currentQuantity - 1;
+		updateQuantity(cartItemUid, newQuantity);
+	}
+
+	function updateQuantity(cartItemUid, newQuantity) {
+		if (newQuantity < 1) {
+			return;
+		}
+		
+		const formData = new FormData();
+		formData.append('quantity', newQuantity);
+		formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+		
+		fetch('/cart/update/' + cartItemUid + '/', {
+			method: 'POST',
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+			},
+			body: formData
+		})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			if (data.success) {
+				if (data.item_deleted) {
+					// Reload page if item was deleted
+					window.location.reload();
+				} else {
+					// Update quantity input
+					document.getElementById('quantity-' + cartItemUid).value = newQuantity;
+					// Update item total
+					if (data.item_total !== undefined) {
+						document.getElementById('item-total-' + cartItemUid).textContent = '₹' + data.item_total + '.00';
+					}
+					// Update cart total
+					document.getElementById('cart-total').textContent = '₹' + data.cart_total + '.00';
+					document.getElementById('cart-total-final').textContent = '₹' + data.cart_total + '.00';
+					// Update cart count in navbar
+					fetch('/cart/count/')
+						.then(response => response.json())
+						.then(data => {
+							if (document.getElementById('cart-count')) {
+								document.getElementById('cart-count').textContent = data.count;
+							}
+						})
+						.catch(error => console.error('Error updating cart count:', error));
+				}
+			} else {
+				alert('Error: ' + (data.message || 'Unknown error occurred'));
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			alert('An error occurred. Please try again.');
+		});
+	}
+
+	function removeItem(cartItemUid, buttonElement) {
+		if (!confirm('Are you sure you want to remove this item?')) {
+			return;
+		}
+		
+		const formData = new FormData();
+		formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+		
+		// Disable the button to prevent double clicks
+		if (buttonElement) {
+			buttonElement.disabled = true;
+			buttonElement.textContent = 'Removing...';
+		}
+		
+		fetch('/cart/remove/' + cartItemUid + '/', {
+			method: 'POST',
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest',
+			},
+			body: formData
+		})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			if (data && data.success) {
+				// Remove the row from the table
+				const row = document.getElementById('quantity-' + cartItemUid).closest('tr');
+				if (row) {
+					row.remove();
+				}
+				
+				// Update cart total
+				if (data.cart_total !== undefined) {
+					document.getElementById('cart-total').textContent = '₹' + data.cart_total + '.00';
+					document.getElementById('cart-total-final').textContent = '₹' + data.cart_total + '.00';
+				}
+				
+				// Update cart count in navbar
+				fetch('/cart/count/')
+					.then(response => response.json())
+					.then(data => {
+						if (document.getElementById('cart-count')) {
+							document.getElementById('cart-count').textContent = data.count;
+						}
+					})
+					.catch(error => console.error('Error updating cart count:', error));
+				
+				// Check if cart is empty
+				const tbody = document.querySelector('.table-shopping-cart tbody');
+				if (tbody && tbody.querySelectorAll('tr').length === 0) {
+					window.location.reload();
+				}
+			} else {
+				alert('Error: ' + (data.message || 'Failed to remove item'));
+				if (buttonElement) {
+					buttonElement.disabled = false;
+					buttonElement.textContent = 'Remove';
+				}
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			alert('An error occurred. Please try again.');
+			if (buttonElement) {
+				buttonElement.disabled = false;
+				buttonElement.textContent = 'Remove';
+			}
+		});
+	}
+</script>
+
+{% endblock %}
+

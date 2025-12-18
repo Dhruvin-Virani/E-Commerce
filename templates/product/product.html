@@ -81,11 +81,11 @@
 						<label>Quantity</label>
 						<div class="input-group mb-3 input-spinner">
 						  <div class="input-group-prepend">
-							<button class="btn btn-light" type="button" id="button-plus"> + </button>
-						  </div>
-						  <input type="text" class="form-control" value="1">
-						  <div class="input-group-append">
 							<button class="btn btn-light" type="button" id="button-minus"> − </button>
+						  </div>
+						  <input type="text" class="form-control" id="quantity-input" value="1" min="1">
+						  <div class="input-group-append">
+							<button class="btn btn-light" type="button" id="button-plus"> + </button>
 						  </div>
 						</div>
 					</div> <!-- col.// -->
@@ -124,7 +124,7 @@
 				</div> <!-- row.// -->
 			
 				<a href="#" class="btn  btn-primary"> Buy now </a>
-				<a href="#" class="btn  btn-outline-primary"> <span class="text">Add to cart</span> <i class="fas fa-shopping-cart"></i>  </a>
+				<button type="button" class="btn btn-outline-primary" id="add-to-cart-btn" onclick="addToCart()"> <span class="text">Add to cart</span> <i class="fas fa-shopping-cart"></i>  </button>
 			</article> <!-- product-info-aside .// -->
 					</main> <!-- col.// -->
 				</div> <!-- row.// -->
@@ -162,6 +162,63 @@
 					}
 					
 					window.location.href = window.location.pathname + '?' + urlParams.toString();
+				}
+
+				// Quantity spinner functionality
+				document.getElementById('button-plus').addEventListener('click', function() {
+					const quantityInput = document.getElementById('quantity-input');
+					let quantity = parseInt(quantityInput.value) || 1;
+					quantityInput.value = quantity + 1;
+				});
+
+				document.getElementById('button-minus').addEventListener('click', function() {
+					const quantityInput = document.getElementById('quantity-input');
+					let quantity = parseInt(quantityInput.value) || 1;
+					if (quantity > 1) {
+						quantityInput.value = quantity - 1;
+					}
+				});
+
+				// Add to cart functionality
+				function addToCart() {
+					const productSlug = '{{ product.slug }}';
+					const quantity = parseInt(document.getElementById('quantity-input').value) || 1;
+					const selectedSize = document.querySelector('input[name="selected_size"]:checked');
+					const selectedColor = document.querySelector('input[name="selected_color"]:checked');
+					
+					const formData = new FormData();
+					formData.append('product_slug', productSlug);
+					formData.append('quantity', quantity);
+					formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+					
+					if (selectedSize) {
+						formData.append('size', selectedSize.value);
+					}
+					if (selectedColor) {
+						formData.append('color', selectedColor.value);
+					}
+					
+					fetch('{% url "add_to_cart" %}', {
+						method: 'POST',
+						headers: {
+							'X-Requested-With': 'XMLHttpRequest',
+						},
+						body: formData
+					})
+					.then(response => response.json())
+					.then(data => {
+						if (data.success) {
+							// Update cart count in navbar
+							document.getElementById('cart-count').textContent = data.cart_count;
+							alert('Product added to cart successfully!');
+						} else {
+							alert('Error: ' + data.message);
+						}
+					})
+					.catch(error => {
+						console.error('Error:', error);
+						alert('An error occurred. Please try again.');
+					});
 				}
 
 			</script>
