@@ -2,6 +2,9 @@
 
 A full-featured ecommerce web application built with Django, featuring product management, shopping cart, payment integration, and user accounts.
 
+<img width="1901" height="1072" alt="image" src="https://github.com/user-attachments/assets/f8e32e9f-e0e0-49ba-9013-4ebb56855a05" />
+
+
 ## Features
 
 ### Core Features
